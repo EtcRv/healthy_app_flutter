@@ -1,0 +1,99 @@
+{
+  "project_info": {
+    "project_number": "146476586304",
+    "firebase_url": "https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "healthy-app-5dab0",
+    "storage_bucket": "healthy-app-5dab0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146476586304:android:f1786af1f10923283e16a5",
+        "android_client_info": {
+          "package_name": "com.example.healthy_app_flutter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "146476586304-uvnl7rn87jclk7tvkdqb13eu9c7h3cng.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkrffUdDlpNnybmw_hSwW6ybVu_ZDv8LY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "146476586304-jo77noqrr26b36rqd5q8po69kol944i9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "146476586304-5hlh6ef5r8csgbev5n5r0595uv2l1s4d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.healthyAppFlutter.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146476586304:android:81abddead42977733e16a5",
+        "android_client_info": {
+          "package_name": "com.healthyapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "146476586304-63o771e9fvh6h6d6bq2r9kp4hqjdu277.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.healthyapp",
+            "certificate_hash": "6067158091bfc5a6cdf1da02a33c9e4d4855f9cf"
+          }
+        },
+        {
+          "client_id": "146476586304-kmr9gdmqaoi5pge7f6g1spvrin7e1qr6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.healthyapp",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "146476586304-uvnl7rn87jclk7tvkdqb13eu9c7h3cng.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkrffUdDlpNnybmw_hSwW6ybVu_ZDv8LY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "146476586304-jo77noqrr26b36rqd5q8po69kol944i9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "146476586304-5hlh6ef5r8csgbev5n5r0595uv2l1s4d.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.healthyAppFlutter.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
