@@ -1,7 +1,11 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
-
+import 'package:fluttertoast/fluttertoast.dart';
 import '../LoginScreen/LoginScreen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -17,6 +21,66 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String email = '';
   String password = '';
   String rePassword = '';
+  String error = '';
+  String success = '';
+  DatabaseReference userDatabase = FirebaseDatabase.instance.ref('/users');
+
+  void register() async {
+    if (email == '' || password == '' || name == '' || rePassword == '') {
+      setState(() {
+        error = 'Xin hãy nhập đủ các trường bên trên!';
+      });
+    } else if (!email.contains('@')) {
+      setState(() {
+        error = 'Trường email nhập không đúng dạng!';
+      });
+    } else if (password != rePassword) {
+      setState(() {
+        error = 'Hai mật khẩu nhập không giống nhau!';
+      });
+    } else {
+      setState(() {
+        error = '';
+      });
+      try {
+        UserCredential newUser = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(email: email, password: password);
+        var newReference = userDatabase.push();
+        newReference.set({
+          "user": {
+            "uuid": newUser.user?.uid,
+            "name": name,
+            "email": email,
+            "age": 0,
+            "gender": 'male',
+            "quequan": '',
+            "noio": ''
+          }
+        }).then((value) {
+          Fluttertoast.showToast(
+            msg: "Tạo tài khoản thành công",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: Colors.blue,
+            textColor: Colors.white,
+            fontSize: 16,
+          );
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => LoginScreen()));
+        });
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'weak-password') {
+          setState(() {
+            error = 'The password provided is too weak.';
+          });
+        } else if (e.code == 'email-already-in-use') {
+          setState(() {
+            error = 'The account already exists for that email.';
+          });
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       name = value;
                     });
                   }),
+                  isPassword: false,
                 ),
                 const SizedBox(
                   height: 20,
@@ -78,6 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       email = value;
                     });
                   }),
+                  isPassword: false,
                 ),
                 const SizedBox(
                   height: 20,
@@ -89,6 +155,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       password = value;
                     });
                   }),
+                  isPassword: true,
                 ),
                 const SizedBox(
                   height: 20,
@@ -100,14 +167,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       rePassword = value;
                     });
                   }),
+                  isPassword: true,
                 ),
                 const SizedBox(
-                  height: 20,
+                  height: 10,
+                ),
+                Visibility(
+                  visible: error != '',
+                  child: Text(
+                    error,
+                    style: const TextStyle(
+                      color: Color(0xffd72020),
+                    ),
+                  ),
+                ),
+                Visibility(
+                  visible: success != '',
+                  child: Text(
+                    success,
+                    style: const TextStyle(
+                      color: Color(0xff13c26a),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
                 Container(
                   alignment: Alignment.center,
                   child: Button(
-                    clickBtn: () {},
+                    clickBtn: () {
+                      register();
+                    },
                     textColor: Color(0xFFFFFFFF),
                     textContent: "ĐĂNG KÝ",
                     backgroundColor: Color(0xFF1f0ec7),
@@ -131,11 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     InkWell(
                       onTap: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => LoginScreen()),
-                        );
+                        Navigator.pushNamed(context, '/login');
                       },
                       child: const Text(
                         "Đăng nhập",

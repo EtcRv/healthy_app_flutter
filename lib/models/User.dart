@@ -1,6 +1,6 @@
-class User {
-  User(this.uuid, this.email, this.name, this.gender, this.noio, this.quequan,
-      this.age);
+class UserModel {
+  UserModel(this.uuid, this.email, this.name, this.gender, this.noio,
+      this.quequan, this.age);
   final String uuid;
   final String email;
   final String name;
@@ -9,3 +9,5 @@ class User {
   final String quequan;
   final int age;
 }
+
+enum UserModelInterval { uuid, email, name, gender, noio, quequan, age }

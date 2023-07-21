@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:healthy_app_flutter/Screens/AuthenticationScreen/AuthenticationScreen.dart';
+import 'package:healthy_app_flutter/Screens/ForgetPasswordScreen/ForgetPasswordScreen.dart';
+import 'package:healthy_app_flutter/Screens/HomeScreen/HomeScreen.dart';
+import 'package:healthy_app_flutter/Screens/LoginScreen/LoginScreen.dart';
 import 'package:healthy_app_flutter/Screens/PredictCovidScreen/PredictCovidScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:healthy_app_flutter/Screens/RegisterScreen/RegisterScreen.dart';
+import 'package:healthy_app_flutter/core/reducers/app_state_reducer.dart';
+import 'package:healthy_app_flutter/models/App_State.dart';
+import 'package:redux/redux.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -9,37 +17,66 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+
+  final store = Store<AppState>(
+    appReducer,
+    initialState: AppState.init(),
+  );
+  runApp(StoreProvider(store: store, child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const AuthenticationScreen(),
+    return StoreConnector(
+        converter: (Store<AppState> store) => _ViewModel.fromStore(store),
+        builder: (BuildContext context, vm) {
+          return MaterialApp(
+            title: 'Flutter Demo',
+            theme: ThemeData(
+              // This is the theme of your application.
+              //
+              // TRY THIS: Try running your application with "flutter run". You'll see
+              // the application has a blue toolbar. Then, without quitting the app,
+              // try changing the seedColor in the colorScheme below to Colors.green
+              // and then invoke "hot reload" (save your changes or press the "hot
+              // reload" button in a Flutter-supported IDE, or press "r" if you used
+              // the command line to start the app).
+              //
+              // Notice that the counter didn't reset back to zero; the application
+              // state is not lost during the reload. To reset the state, use hot
+              // restart instead.
+              //
+              // This works for code too, not just values: Most code changes can be
+              // tested with just a hot reload.
+              colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+              useMaterial3: true,
+            ),
+            routes: {
+              '/': (context) => const AuthenticationScreen(),
+              '/login': (context) => LoginScreen(),
+              '/register': (context) => const RegisterScreen(),
+              '/forgetpassword': (context) => const ForgetPasswordScreen(),
+              '/home': (context) => HomeScreen(),
+              '/predict': (context) => const PredictCovidScreen(),
+            },
+            initialRoute: vm.isLogin ? '/home' : '/',
+          );
+        });
+  }
+}
+
+class _ViewModel {
+  final bool isLogin;
+  _ViewModel({
+    required this.isLogin,
+  });
+
+  static _ViewModel fromStore(store) {
+    return _ViewModel(
+      isLogin: store.state.isLogin,
     );
   }
 }

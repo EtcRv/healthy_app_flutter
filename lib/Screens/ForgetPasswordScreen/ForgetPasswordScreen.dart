@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
@@ -13,6 +14,19 @@ class ForgetPasswordScreen extends StatefulWidget {
 
 class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   String email = '';
+  String success = '';
+
+  void getNewPassword() async {
+    try {
+      await FirebaseAuth.instance
+          .sendPasswordResetEmail(email: email)
+          .then((value) => setState(() {
+                success = 'Kiểm tra mail để cập nhật mật khẩu của bạn!';
+              }));
+    } catch (err) {
+      print("err: ${err}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,14 +76,29 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
                       email = value;
                     });
                   }),
+                  isPassword: false,
                 ),
                 const SizedBox(
-                  height: 20,
+                  height: 10,
+                ),
+                Visibility(
+                  visible: success != '',
+                  child: Text(
+                    success,
+                    style: const TextStyle(
+                      color: Color(0xff13c26a),
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 10,
                 ),
                 Container(
                   alignment: Alignment.center,
                   child: Button(
-                    clickBtn: () {},
+                    clickBtn: () {
+                      getNewPassword();
+                    },
                     textColor: Color(0xFFFFFFFF),
                     textContent: "LẤY MẬT KHẨU MỚI",
                     backgroundColor: Color(0xFF1f0ec7),

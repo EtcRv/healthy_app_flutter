@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 
 class FloatingInput extends StatefulWidget {
   FloatingInput(
-      {super.key, required this.labelText, required this.setInputValue});
+      {super.key,
+      required this.labelText,
+      required this.setInputValue,
+      required this.isPassword});
   String labelText;
   void Function(String value) setInputValue;
+  bool isPassword;
 
   @override
   State<FloatingInput> createState() {
@@ -16,6 +20,7 @@ class _FloatingInputState extends State<FloatingInput> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      obscureText: widget.isPassword,
       decoration: InputDecoration(
         border: const OutlineInputBorder(),
         labelText: widget.labelText,
