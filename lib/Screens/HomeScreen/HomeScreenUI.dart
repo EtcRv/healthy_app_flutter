@@ -1,5 +1,8 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_redux/flutter_redux.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInputWithInitValue/FloatingInputWithInitValue.dart';
@@ -44,6 +47,7 @@ class _HomeScreenUIState extends State<HomeScreenUI> {
   String quequan = '';
   String gender = '';
   int age = 0;
+  DatabaseReference userDatabase = FirebaseDatabase.instance.ref('/users');
 
   @override
   void initState() {
@@ -60,6 +64,7 @@ class _HomeScreenUIState extends State<HomeScreenUI> {
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+    _ageController.dispose();
   }
 
   @override
@@ -262,14 +267,51 @@ class _HomeScreenUIState extends State<HomeScreenUI> {
                 ),
                 Button(
                   clickBtn: () {
+                    EasyLoading.show(status: 'loading...');
                     widget.saveInformation(UserModel(
                         widget.userInfo.uuid,
                         widget.userInfo.email,
                         name,
-                        gender,
+                        widget.gender,
                         noio,
                         quequan,
                         age));
+                    userDatabase.onValue.listen((event) {
+                      final data = event.snapshot.value;
+                      var users = new Map();
+                      Map<String, dynamic>.from(data as dynamic)
+                          .forEach((key, value) => users[key] = value);
+                      for (var k in users.keys) {
+                        if (users[k]['user']['email'] ==
+                            widget.userInfo.email) {
+                          var userUpdates = FirebaseDatabase.instance
+                              .ref()
+                              .child('/users/${k}');
+                          userUpdates.update({
+                            "user": {
+                              "gender": widget.gender,
+                              "name": name,
+                              "noio": noio,
+                              "quequan": quequan,
+                              "age": age,
+                              "email": widget.userInfo.email,
+                              "uuid": widget.userInfo.uuid
+                            }
+                          }).then((_) {
+                            EasyLoading.dismiss();
+                            Fluttertoast.showToast(
+                              msg: "Lưu thông tin thành công",
+                              toastLength: Toast.LENGTH_SHORT,
+                              gravity: ToastGravity.BOTTOM,
+                              backgroundColor: Colors.blue,
+                              textColor: Colors.white,
+                              fontSize: 16,
+                            );
+                          });
+                        }
+                      }
+                    });
+                    // EasyLoading.dismiss();
                   },
                   textColor: Color(0xFFFFFFFF),
                   textContent: "Lưu thông tin",

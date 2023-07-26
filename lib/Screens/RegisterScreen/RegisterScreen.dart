@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -43,6 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         error = '';
       });
       try {
+        EasyLoading.show(status: 'loading...');
         UserCredential newUser = await FirebaseAuth.instance
             .createUserWithEmailAndPassword(email: email, password: password);
         var newReference = userDatabase.push();
@@ -65,9 +67,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
             textColor: Colors.white,
             fontSize: 16,
           );
+          EasyLoading.dismiss();
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => LoginScreen()));
         });
+        EasyLoading.dismiss();
       } on FirebaseAuthException catch (e) {
         if (e.code == 'weak-password') {
           setState(() {

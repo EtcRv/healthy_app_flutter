@@ -19,7 +19,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  DatabaseReference userDatabase = FirebaseDatabase.instance.ref('/users');
 
   @override
   Widget build(BuildContext context) {
@@ -37,38 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
             quequan: vm.userInfo.quequan,
             saveInformation: (UserModel user) {
               vm.onUserModelChange(user);
-              userDatabase.onValue.listen((event) {
-                final data = event.snapshot.value;
-                var users = new Map();
-                Map<String, dynamic>.from(data as dynamic)
-                    .forEach((key, value) => users[key] = value);
-                for (var k in users.keys) {
-                  if (users[k]['user']['email'] == user.email) {
-                    var userUpdates =
-                        FirebaseDatabase.instance.ref().child('/users/${k}');
-                    userUpdates.update({
-                      "user": {
-                        "gender": user.gender,
-                        "name": user.name,
-                        "noio": user.noio,
-                        "quequan": user.quequan,
-                        "age": user.age,
-                        "email": user.email,
-                        "uuid": user.uuid
-                      }
-                    }).then((_) {
-                      Fluttertoast.showToast(
-                        msg: "Lưu thông tin thành công",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.blue,
-                        textColor: Colors.white,
-                        fontSize: 16,
-                      );
-                    });
-                  }
-                }
-              });
             },
             logout: () {
               vm.changeLogin(false);

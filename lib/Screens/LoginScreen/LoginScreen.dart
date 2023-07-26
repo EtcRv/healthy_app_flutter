@@ -15,6 +15,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:healthy_app_flutter/core/reducers/user_reducer.dart';
 import 'package:redux/redux.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key});
@@ -35,128 +36,6 @@ class _LoginScreenState extends State<LoginScreen> {
   String noio = '';
   String quequan = '';
   int age = 0;
-
-  // void login() async {
-  //   if (email == '' || password == '') {
-  //     setState(() {
-  //       error = 'Xin hãy nhập đủ các trường bên trên!';
-  //     });
-  //   } else if (!email.contains('@')) {
-  //     setState(() {
-  //       error = 'Trường email nhập không đúng dạng!';
-  //     });
-  //   } else {
-  //     setState(() {
-  //       error = '';
-  //     });
-  //     try {
-  //       UserCredential credential = await FirebaseAuth.instance
-  //           .signInWithEmailAndPassword(email: email, password: password);
-
-  //       userDatabase.onValue.listen((event) {
-  //         final data = event.snapshot.value;
-  //         var users = new Map();
-  //         Map<String, dynamic>.from(data as dynamic)
-  //             .forEach((key, value) => users[key] = value);
-  //         for (var k in users.keys) {
-  //           if (users[k]['user']['email'] == email) {
-  //             setState(() {
-  //               uuid = users[k]['user']['uuid'];
-  //               name = users[k]['user']['name'];
-  //               gender = users[k]['user']['gender'];
-  //               noio = users[k]['user']['noio'];
-  //               quequan = users[k]['user']['quequan'];
-  //               age = users[k]['user']['age'];
-  //             });
-  //           }
-  //         }
-  //       });
-  //     } on FirebaseAuthException catch (e) {
-  //       if (e.code == 'user-not-found') {
-  //         setState(() {
-  //           error = 'No user found for that email.';
-  //         });
-  //       } else if (e.code == 'wrong-password') {
-  //         setState(() {
-  //           error = 'Wrong password provided for that user.';
-  //         });
-  //       }
-  //     }
-  //   }
-  // }
-
-  // void onRestore(user) {
-  //   var flag = false;
-
-  //   userDatabase.onValue.listen((event) {
-  //     final data = event.snapshot.value;
-  //     var users = new Map();
-  //     Map<String, dynamic>.from(data as dynamic)
-  //         .forEach((key, value) => users[key] = value);
-  //     for (var k in users.keys) {
-  //       if (users[k]['user']['email'] == user.email) {
-  //         flag = true;
-  //         uuid = users[k]['user']['uuid'];
-  //         name = users[k]['user']['name'];
-  //         gender = users[k]['user']['gender'];
-  //         noio = users[k]['user']['noio'];
-  //         quequan = users[k]['user']['quequan'];
-  //         age = users[k]['user']['age'];
-  //         email = users[k]['user']['email'];
-  //       }
-  //     }
-  //     if (!flag) {
-  //       var newReference = userDatabase.push();
-  //       newReference.set({
-  //         "user": {
-  //           "uuid": user.uid,
-  //           "name": user.displayName,
-  //           "email": user.email,
-  //           "age": 0,
-  //           "gender": 'male',
-  //           "quequan": '',
-  //           "noio": ''
-  //         }
-  //       }).then((value) {
-  //         setState(() {
-  //           uuid = user.uid;
-  //           name = user.displayName;
-  //           gender = 'male';
-  //           noio = '';
-  //           quequan = '';
-  //           age = 0;
-  //           email = user.email;
-  //         });
-  //         Fluttertoast.showToast(
-  //           msg: "Đăng nhập thành công",
-  //           toastLength: Toast.LENGTH_SHORT,
-  //           gravity: ToastGravity.BOTTOM,
-  //           backgroundColor: Colors.blue,
-  //           textColor: Colors.white,
-  //           fontSize: 16,
-  //         );
-  //       });
-  //     }
-  //   });
-  // }
-
-  // void onSignIn() async {
-  //   try {
-  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-  //     final GoogleSignInAuthentication? googleAuth =
-  //         await googleUser?.authentication;
-
-  //     final credential = GoogleAuthProvider.credential(
-  //       accessToken: googleAuth?.accessToken,
-  //       idToken: googleAuth?.idToken,
-  //     );
-  //     UserCredential userCredential =
-  //         await FirebaseAuth.instance.signInWithCredential(credential);
-  //     onRestore(userCredential.user);
-  //   } catch (error) {
-  //     print("error: ${error}");
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -257,6 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               error = '';
                             });
                             try {
+                              EasyLoading.show(status: 'loading...');
                               UserCredential credential = await FirebaseAuth
                                   .instance
                                   .signInWithEmailAndPassword(
@@ -279,11 +159,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                         users[k]['user']['quequan'],
                                         users[k]['user']['age']));
                                     vm.changeIsLogin(true);
+                                    EasyLoading.dismiss();
                                     Navigator.pushReplacementNamed(
                                         context, '/home');
                                   }
                                 }
                               });
+                              EasyLoading.dismiss();
                             } on FirebaseAuthException catch (e) {
                               if (e.code == 'user-not-found') {
                                 setState(() {
@@ -392,12 +274,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                 final credential =
                                     GoogleAuthProvider.credential(
-                                  accessToken: googleAuth?.accessToken,
                                   idToken: googleAuth?.idToken,
                                 );
+
                                 UserCredential userCredential =
                                     await FirebaseAuth.instance
                                         .signInWithCredential(credential);
+
                                 var flag = false;
                                 userDatabase.onValue.listen((event) {
                                   final data = event.snapshot.value;

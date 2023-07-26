@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/models/models.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:http/http.dart' as http;
 
 class PredictCovidUI extends StatefulWidget {
   PredictCovidUI({super.key, required this.userState, required this.logout});
@@ -62,6 +67,46 @@ class _PredictCovidUIState extends State<PredictCovidUI> {
       },
       "result": result
     });
+
+    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+    Map<String, String> headers = {"Content-type": "application/json"};
+
+    if (Platform.isAndroid) {
+      var androidInfo = await deviceInfo.androidInfo;
+      if (androidInfo.isPhysicalDevice) {
+        final response =
+            await http.post(Uri.http("localhost:8000", "/api/add-predict"),
+                headers: headers,
+                body: json.encode({
+                  'name': widget.userState.name,
+                  "age": widget.userState.age,
+                  "gender": widget.userState.gender,
+                  "noio": widget.userState.noio,
+                  "sot": sotInput,
+                  "ho": hoInput,
+                  "viemhong": viemhongInput,
+                  "khotho": khothoInput,
+                  "daudau": daudauInput,
+                  "result": result
+                }));
+      } else {
+        final response =
+            await http.post(Uri.http("10.0.2.2:8000", "/api/add-predict"),
+                headers: headers,
+                body: json.encode({
+                  'name': widget.userState.name,
+                  "age": widget.userState.age,
+                  "gender": widget.userState.gender,
+                  "noio": widget.userState.noio,
+                  "sot": sotInput,
+                  "ho": hoInput,
+                  "viemhong": viemhongInput,
+                  "khotho": khothoInput,
+                  "daudau": daudauInput,
+                  "result": result
+                }));
+      }
+    }
   }
 
   @override

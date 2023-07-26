@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:healthy_app_flutter/Screens/AuthenticationScreen/AuthenticationScreen.dart';
 import 'package:healthy_app_flutter/Screens/ForgetPasswordScreen/ForgetPasswordScreen.dart';
@@ -10,6 +11,8 @@ import 'package:healthy_app_flutter/Screens/RegisterScreen/RegisterScreen.dart';
 import 'package:healthy_app_flutter/core/reducers/app_state_reducer.dart';
 import 'package:healthy_app_flutter/models/App_State.dart';
 import 'package:redux/redux.dart';
+import 'package:redux_persist/redux_persist.dart';
+import 'package:redux_persist_flutter/redux_persist_flutter.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -18,9 +21,23 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  final persistor = Persistor<AppState>(
+    storage: FlutterStorage(),
+    serializer: JsonSerializer<AppState>(AppState.fromJson),
+    debug: true,
+  );
+
+  AppState? initialState;
+  try {
+    initialState = await persistor.load();
+  } catch (e) {
+    initialState = null;
+  }
+
   final store = Store<AppState>(
     appReducer,
-    initialState: AppState.init(),
+    initialState: initialState ?? AppState.init(),
+    middleware: [persistor.createMiddleware()],
   );
   runApp(StoreProvider(store: store, child: MyApp()));
 }
@@ -63,6 +80,7 @@ class MyApp extends StatelessWidget {
               '/predict': (context) => const PredictCovidScreen(),
             },
             initialRoute: vm.isLogin ? '/home' : '/',
+            builder: EasyLoading.init(),
           );
         });
   }
