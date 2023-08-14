@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/models/models.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class PredictCovidUI extends StatefulWidget {
@@ -31,7 +31,113 @@ class _PredictCovidUIState extends State<PredictCovidUI> {
   bool daudau = false;
   String gender = '';
   double result = -1;
+  List<String> predict_input = [
+    '00000',
+    '00001',
+    '00010',
+    '00011',
+    '00100',
+    '00101',
+    '00110',
+    '00111',
+    '01000',
+    '01001',
+    '01010',
+    '01011',
+    '01100',
+    '01101',
+    '01110',
+    '01111',
+    '10000',
+    '10001',
+    '10010',
+    '10011',
+    '10100',
+    '10101',
+    '10110',
+    '10111',
+    '11000',
+    '11001',
+    '11010',
+    '11011',
+    '11100',
+    '11101',
+    '11110',
+    '11111',
+  ];
 
+  List<double> list_result_predict_male = [
+    0.0843,
+    0.1913,
+    0.1771,
+    0.3271,
+    0.1890,
+    0.3484,
+    0.3348,
+    0.4871,
+    0.1843,
+    0.3340,
+    0.3197,
+    0.4621,
+    0.3408,
+    0.4877,
+    0.4752,
+    0.5837,
+    0.2099,
+    0.3734,
+    0.3612,
+    0.5081,
+    0.3709,
+    0.5225,
+    0.5170,
+    0.6216,
+    0.3689,
+    0.5135,
+    0.5046,
+    0.6068,
+    0.5161,
+    0.6195,
+    0.6120,
+    0.6786
+  ];
+
+  List<double> list_result_predict_female = [
+    0.1243,
+    0.2641,
+    0.2481,
+    0.4108,
+    0.2593,
+    0.4289,
+    0.4149,
+    0.5535,
+    0.2542,
+    0.4146,
+    0.3982,
+    0.5304,
+    0.4139,
+    0.5496,
+    0.5350,
+    0.6290,
+    0.2847,
+    0.4496,
+    0.4412,
+    0.5690,
+    0.4463,
+    0.5791,
+    0.5739,
+    0.6590,
+    0.4453,
+    0.5721,
+    0.5632,
+    0.6468,
+    0.5698,
+    0.6564,
+    0.6481,
+    0.7027
+  ];
+
+  DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+  Map<String, String> headers = {"Content-type": "application/json"};
   void predictCovid() async {
     int sotInput = sot == false ? 0 : 1;
     int hoInput = ho == false ? 0 : 1;
@@ -39,37 +145,89 @@ class _PredictCovidUIState extends State<PredictCovidUI> {
     int khothoInput = khotho == false ? 0 : 1;
     int daudauInput = daudau == false ? 0 : 1;
     int genderInput = gender == 'female' ? 0 : 1;
-    final model = await Interpreter.fromAsset('assets/model/model.tflite');
-    var input = [
-      [sotInput, hoInput, viemhongInput, khothoInput, daudauInput, genderInput]
-    ];
-    var output = List.filled(1 * 3, 0).reshape([1, 3]);
-    model.run(input, output);
-    setState(() {
-      result = output[0][1];
-    });
-    var newReference = predictCovidDatabase.push();
-    newReference.set({
-      "user": {
-        "name": widget.userState.name,
-        "email": widget.userState.email,
-        "age": widget.userState.age,
-        "gender": widget.userState.gender,
-        "quequan": widget.userState.quequan,
-        "noio": widget.userState.noio,
-      },
-      "trieuchung": {
-        "sot": sotInput,
-        "ho": hoInput,
-        "viemhong": viemhongInput,
-        "khotho": khothoInput,
-        "daudau": daudauInput,
-      },
-      "result": result
-    });
 
-    DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-    Map<String, String> headers = {"Content-type": "application/json"};
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final model = await Interpreter.fromAsset('assets/model/model.tflite');
+      var input = [
+        [
+          sotInput,
+          hoInput,
+          viemhongInput,
+          khothoInput,
+          daudauInput,
+          genderInput
+        ]
+      ];
+      var output = List.filled(1 * 3, 0).reshape([1, 3]);
+      model.run(input, output);
+      setState(() {
+        result = output[0][1];
+      });
+    } else if (defaultTargetPlatform == TargetPlatform.windows) {
+      var input_arr = [
+        sotInput,
+        hoInput,
+        viemhongInput,
+        khothoInput,
+        daudauInput
+      ];
+      String binaryString = input_arr.join('');
+      if (genderInput == 1) {
+        for (var i = 0; i < 32; i++) {
+          if (predict_input[i] == binaryString) {
+            setState(() {
+              result = list_result_predict_male[i];
+            });
+            break;
+          }
+        }
+      } else {
+        for (var i = 0; i < 32; i++) {
+          if (predict_input[i] == binaryString) {
+            setState(() {
+              result = list_result_predict_female[i];
+            });
+            break;
+          }
+        }
+      }
+
+      final response =
+          await http.post(Uri.http("localhost:8000", "/api/add-predict"),
+              headers: headers,
+              body: json.encode({
+                'name': widget.userState.name,
+                "age": widget.userState.age,
+                "gender": widget.userState.gender,
+                "noio": widget.userState.noio,
+                "sot": sotInput,
+                "ho": hoInput,
+                "viemhong": viemhongInput,
+                "khotho": khothoInput,
+                "daudau": daudauInput,
+                "result": result
+              }));
+    }
+
+    // var newReference = predictCovidDatabase.push();
+    // newReference.set({
+    //   "user": {
+    //     "name": widget.userState.name,
+    //     "email": widget.userState.email,
+    //     "age": widget.userState.age,
+    //     "gender": widget.userState.gender,
+    //     "quequan": widget.userState.quequan,
+    //     "noio": widget.userState.noio,
+    //   },
+    //   "trieuchung": {
+    //     "sot": sotInput,
+    //     "ho": hoInput,
+    //     "viemhong": viemhongInput,
+    //     "khotho": khothoInput,
+    //     "daudau": daudauInput,
+    //   },
+    //   "result": result
+    // });
 
     if (Platform.isAndroid) {
       var androidInfo = await deviceInfo.androidInfo;

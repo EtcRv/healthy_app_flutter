@@ -2,6 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ForgetPasswordScreen extends StatefulWidget {
   const ForgetPasswordScreen({super.key});
@@ -17,14 +20,29 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   String success = '';
 
   void getNewPassword() async {
-    try {
-      await FirebaseAuth.instance
-          .sendPasswordResetEmail(email: email)
-          .then((value) => setState(() {
-                success = 'Kiểm tra mail để cập nhật mật khẩu của bạn!';
-              }));
-    } catch (err) {
-      print("err: ${err}");
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      try {
+        await FirebaseAuth.instance
+            .sendPasswordResetEmail(email: email)
+            .then((value) => setState(() {
+                  success = 'Kiểm tra mail để cập nhật mật khẩu của bạn!';
+                }));
+      } catch (err) {
+        print("err: ${err}");
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.windows) {
+      final url = Uri.parse(
+          'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyA4l4-gZJNsElJBSpmnRLsHlbY90ZAN2l4');
+      final response = await http.post(
+        url,
+        body: json.encode({
+          'email': email,
+          'requestType': "PASSWORD_RESET",
+        }),
+      );
+      setState(() {
+        success = 'Kiểm tra mail để cập nhật mật khẩu của bạn!';
+      });
     }
   }
 

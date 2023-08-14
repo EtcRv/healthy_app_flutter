@@ -17,40 +17,36 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return linux;
       default:
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
     }
   }
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyA4l4-gZJNsElJBSpmnRLsHlbY90ZAN2l4',
+    appId: '1:146476586304:web:ee02293a2f53df853e16a5',
+    messagingSenderId: '146476586304',
+    projectId: 'healthy-app-5dab0',
+    authDomain: 'healthy-app-5dab0.firebaseapp.com',
+    databaseURL: 'https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'healthy-app-5dab0.appspot.com',
+    measurementId: 'G-FV3811M567',
+  );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAkrffUdDlpNnybmw_hSwW6ybVu_ZDv8LY',
@@ -59,5 +55,51 @@ class DefaultFirebaseOptions {
     projectId: 'healthy-app-5dab0',
     databaseURL: 'https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'healthy-app-5dab0.appspot.com',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyDvcSNFeLO-SM3qSfU9NAbPXjuWMCWaiZI',
+    appId: '1:146476586304:ios:e88e82c6e6bb6fb03e16a5',
+    messagingSenderId: '146476586304',
+    projectId: 'healthy-app-5dab0',
+    databaseURL: 'https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'healthy-app-5dab0.appspot.com',
+    androidClientId: '146476586304-63o771e9fvh6h6d6bq2r9kp4hqjdu277.apps.googleusercontent.com',
+    iosClientId: '146476586304-ddjte3dtqqq9p3kv1dpt5gncflgecvk8.apps.googleusercontent.com',
+    iosBundleId: 'com.example.healthyAppFlutter',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDvcSNFeLO-SM3qSfU9NAbPXjuWMCWaiZI',
+    appId: '1:146476586304:ios:a8a6d8fc6fc19d293e16a5',
+    messagingSenderId: '146476586304',
+    projectId: 'healthy-app-5dab0',
+    databaseURL: 'https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'healthy-app-5dab0.appspot.com',
+    androidClientId: '146476586304-63o771e9fvh6h6d6bq2r9kp4hqjdu277.apps.googleusercontent.com',
+    iosClientId: '146476586304-5hlh6ef5r8csgbev5n5r0595uv2l1s4d.apps.googleusercontent.com',
+    iosBundleId: 'com.example.healthyAppFlutter.RunnerTests',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyA4l4-gZJNsElJBSpmnRLsHlbY90ZAN2l4',
+    appId: '1:146476586304:web:ec04de854de1102b3e16a5',
+    messagingSenderId: '146476586304',
+    projectId: 'healthy-app-5dab0',
+    authDomain: 'healthy-app-5dab0.firebaseapp.com',
+    databaseURL: 'https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'healthy-app-5dab0.appspot.com',
+    measurementId: 'G-Z5FXKH7ZQG',
+  );
+
+  static const FirebaseOptions linux = FirebaseOptions(
+    apiKey: 'AIzaSyA4l4-gZJNsElJBSpmnRLsHlbY90ZAN2l4',
+    appId: '1:146476586304:web:077fd2a5b19525653e16a5',
+    messagingSenderId: '146476586304',
+    projectId: 'healthy-app-5dab0',
+    authDomain: 'healthy-app-5dab0.firebaseapp.com',
+    databaseURL: 'https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app',
+    storageBucket: 'healthy-app-5dab0.appspot.com',
+    measurementId: 'G-XVJBNXLVX4',
   );
 }

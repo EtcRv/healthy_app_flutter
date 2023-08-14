@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -8,6 +9,8 @@ import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import '../LoginScreen/LoginScreen.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -43,45 +46,88 @@ class _RegisterScreenState extends State<RegisterScreen> {
       setState(() {
         error = '';
       });
-      try {
-        EasyLoading.show(status: 'loading...');
-        UserCredential newUser = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(email: email, password: password);
-        var newReference = userDatabase.push();
-        newReference.set({
-          "user": {
-            "uuid": newUser.user?.uid,
-            "name": name,
-            "email": email,
-            "age": 0,
-            "gender": 'male',
-            "quequan": '',
-            "noio": ''
-          }
-        }).then((value) {
-          Fluttertoast.showToast(
-            msg: "Tạo tài khoản thành công",
-            toastLength: Toast.LENGTH_SHORT,
-            gravity: ToastGravity.BOTTOM,
-            backgroundColor: Colors.blue,
-            textColor: Colors.white,
-            fontSize: 16,
-          );
+      if (Platform.isAndroid) {
+        try {
+          EasyLoading.show(status: 'loading...');
+          UserCredential newUser = await FirebaseAuth.instance
+              .createUserWithEmailAndPassword(email: email, password: password);
+          var newReference = userDatabase.push();
+          newReference.set({
+            "user": {
+              "uuid": newUser.user?.uid,
+              "name": name,
+              "email": email,
+              "age": 0,
+              "gender": 'male',
+              "quequan": '',
+              "noio": ''
+            }
+          }).then((value) {
+            Fluttertoast.showToast(
+              msg: "Tạo tài khoản thành công",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.blue,
+              textColor: Colors.white,
+              fontSize: 16,
+            );
+            EasyLoading.dismiss();
+            Navigator.pushReplacement(context,
+                MaterialPageRoute(builder: (context) => LoginScreen()));
+          });
           EasyLoading.dismiss();
+        } on FirebaseAuthException catch (e) {
+          EasyLoading.dismiss();
+          if (e.code == 'weak-password') {
+            setState(() {
+              error = 'The password provided is too weak.';
+            });
+          } else if (e.code == 'email-already-in-use') {
+            setState(() {
+              error = 'The account already exists for that email.';
+            });
+          }
+        }
+      } else if (Platform.isWindows) {
+        EasyLoading.show(status: 'loading...');
+        final url = Uri.parse(
+            'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyA4l4-gZJNsElJBSpmnRLsHlbY90ZAN2l4');
+
+        final response = await http.post(
+          url,
+          body: json.encode({
+            'email': email,
+            'password': password,
+            'returnSecureToken': false,
+          }),
+        );
+        final responseData = json.decode(response.body);
+        if (responseData['error'] != null &&
+            responseData['error']['code'] == 400) {
+          if (responseData['error']['message'] == "EMAIL_EXISTS") {
+            setState(() {
+              error = 'The account already exists for that email.';
+            });
+          }
+        } else {
+          final dburl = Uri.parse(
+              "https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app/users.json");
+          final db_response = await http.post(dburl,
+              body: json.encode({
+                "user": {
+                  "uuid": responseData['localId'],
+                  "name": name,
+                  "email": email,
+                  "age": 0,
+                  "gender": 'male',
+                  "quequan": '',
+                  "noio": ''
+                }
+              }));
           Navigator.pushReplacement(
               context, MaterialPageRoute(builder: (context) => LoginScreen()));
-        });
-        EasyLoading.dismiss();
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'weak-password') {
-          setState(() {
-            error = 'The password provided is too weak.';
-          });
-        } else if (e.code == 'email-already-in-use') {
-          setState(() {
-            error = 'The account already exists for that email.';
-          });
         }
+        EasyLoading.dismiss();
       }
     }
   }

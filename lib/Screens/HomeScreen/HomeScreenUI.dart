@@ -1,14 +1,13 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_redux/flutter_redux.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
-import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInputWithInitValue/FloatingInputWithInitValue.dart';
-import 'package:healthy_app_flutter/core/actions/actions.dart';
 import 'package:healthy_app_flutter/models/models.dart';
-import 'package:redux/redux.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class HomeScreenUI extends StatefulWidget {
   HomeScreenUI(
@@ -266,7 +265,7 @@ class _HomeScreenUIState extends State<HomeScreenUI> {
                   height: 20,
                 ),
                 Button(
-                  clickBtn: () {
+                  clickBtn: () async {
                     EasyLoading.show(status: 'loading...');
                     widget.saveInformation(UserModel(
                         widget.userInfo.uuid,
@@ -276,42 +275,75 @@ class _HomeScreenUIState extends State<HomeScreenUI> {
                         noio,
                         quequan,
                         age));
-                    userDatabase.onValue.listen((event) {
-                      final data = event.snapshot.value;
-                      var users = new Map();
-                      Map<String, dynamic>.from(data as dynamic)
-                          .forEach((key, value) => users[key] = value);
-                      for (var k in users.keys) {
-                        if (users[k]['user']['email'] ==
+                    if (defaultTargetPlatform == TargetPlatform.android) {
+                      userDatabase.onValue.listen((event) {
+                        final data = event.snapshot.value;
+                        var users = new Map();
+                        Map<String, dynamic>.from(data as dynamic)
+                            .forEach((key, value) => users[key] = value);
+                        for (var k in users.keys) {
+                          if (users[k]['user']['email'] ==
+                              widget.userInfo.email) {
+                            var userUpdates = FirebaseDatabase.instance
+                                .ref()
+                                .child('/users/${k}');
+                            userUpdates.update({
+                              "user": {
+                                "gender": widget.gender,
+                                "name": name,
+                                "noio": noio,
+                                "quequan": quequan,
+                                "age": age,
+                                "email": widget.userInfo.email,
+                                "uuid": widget.userInfo.uuid
+                              }
+                            }).then((_) {
+                              EasyLoading.dismiss();
+                              Fluttertoast.showToast(
+                                msg: "Lưu thông tin thành công",
+                                toastLength: Toast.LENGTH_SHORT,
+                                gravity: ToastGravity.BOTTOM,
+                                backgroundColor: Colors.blue,
+                                textColor: Colors.white,
+                                fontSize: 16,
+                              );
+                            });
+                          }
+                        }
+                      });
+                    } else if (defaultTargetPlatform ==
+                        TargetPlatform.windows) {
+                      final dburl = Uri.parse(
+                          "https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app/users.json");
+                      final db_response = await http.get(dburl);
+                      final users_data = json.decode(db_response.body);
+                      for (var k in users_data.keys) {
+                        if (users_data[k]['user']['email'] ==
                             widget.userInfo.email) {
-                          var userUpdates = FirebaseDatabase.instance
-                              .ref()
-                              .child('/users/${k}');
-                          userUpdates.update({
-                            "user": {
-                              "gender": widget.gender,
-                              "name": name,
-                              "noio": noio,
-                              "quequan": quequan,
-                              "age": age,
-                              "email": widget.userInfo.email,
-                              "uuid": widget.userInfo.uuid
-                            }
-                          }).then((_) {
-                            EasyLoading.dismiss();
-                            Fluttertoast.showToast(
-                              msg: "Lưu thông tin thành công",
-                              toastLength: Toast.LENGTH_SHORT,
-                              gravity: ToastGravity.BOTTOM,
-                              backgroundColor: Colors.blue,
-                              textColor: Colors.white,
-                              fontSize: 16,
-                            );
-                          });
+                          final user_db_url = Uri.parse(
+                              "https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app/users/${k}.json");
+                          final update_response = await http.patch(
+                            user_db_url,
+                            body: json.encode({
+                              "user": {
+                                "gender": widget.gender,
+                                "name": name,
+                                "noio": noio,
+                                "quequan": quequan,
+                                "age": age,
+                                "email": widget.userInfo.email,
+                                "uuid": widget.userInfo.uuid
+                              }
+                            }),
+                          );
+                          final update_response_data =
+                              json.decode(update_response.body);
+                          EasyLoading.dismiss();
                         }
                       }
-                    });
-                    // EasyLoading.dismiss();
+                    }
+
+                    EasyLoading.dismiss();
                   },
                   textColor: Color(0xFFFFFFFF),
                   textContent: "Lưu thông tin",

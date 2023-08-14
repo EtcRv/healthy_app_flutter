@@ -1,10 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:healthy_app_flutter/Screens/ForgetPasswordScreen/ForgetPasswordScreen.dart';
-import 'package:healthy_app_flutter/Screens/RegisterScreen/RegisterScreen.dart';
 import 'package:healthy_app_flutter/Widgets/Button/Button.dart';
 import 'package:healthy_app_flutter/Widgets/FloatingInput/FloatingInput.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -13,9 +12,12 @@ import 'package:healthy_app_flutter/models/App_State.dart';
 import 'package:healthy_app_flutter/models/User.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:healthy_app_flutter/core/reducers/user_reducer.dart';
 import 'package:redux/redux.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+
+const projectId = 'healthy-app-5dab0';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key});
@@ -135,48 +137,107 @@ class _LoginScreenState extends State<LoginScreen> {
                             setState(() {
                               error = '';
                             });
-                            try {
+                            if (Platform.isAndroid ||
+                                defaultTargetPlatform ==
+                                    TargetPlatform.android) {
+                              try {
+                                EasyLoading.show(status: 'loading...');
+                                UserCredential credential = await FirebaseAuth
+                                    .instance
+                                    .signInWithEmailAndPassword(
+                                        email: email, password: password);
+                                userDatabase.onValue.listen((event) {
+                                  final data = event.snapshot.value;
+                                  var users = new Map();
+                                  Map<String, dynamic>.from(data as dynamic)
+                                      .forEach(
+                                          (key, value) => users[key] = value);
+                                  for (var k in users.keys) {
+                                    if (users[k]['user']['email'] == email) {
+                                      vm.onUserModelChange(UserModel(
+                                          users[k]['user']['uuid'],
+                                          email,
+                                          users[k]['user']['name'],
+                                          users[k]['user']['gender'],
+                                          users[k]['user']['noio'],
+                                          users[k]['user']['quequan'],
+                                          users[k]['user']['age']));
+                                      vm.changeIsLogin(true);
+                                      EasyLoading.dismiss();
+                                      Navigator.pushReplacementNamed(
+                                          context, '/home');
+                                    }
+                                  }
+                                });
+                                EasyLoading.dismiss();
+                              } on FirebaseAuthException catch (e) {
+                                EasyLoading.dismiss();
+                                if (e.code == 'user-not-found') {
+                                  setState(() {
+                                    error = 'No user found for that email.';
+                                  });
+                                } else if (e.code == 'wrong-password') {
+                                  setState(() {
+                                    error =
+                                        'Wrong password provided for that user.';
+                                  });
+                                }
+                              }
+                            } else if (Platform.isWindows ||
+                                defaultTargetPlatform ==
+                                    TargetPlatform.windows) {
                               EasyLoading.show(status: 'loading...');
-                              UserCredential credential = await FirebaseAuth
-                                  .instance
-                                  .signInWithEmailAndPassword(
-                                      email: email, password: password);
+                              final url = Uri.parse(
+                                  'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyA4l4-gZJNsElJBSpmnRLsHlbY90ZAN2l4');
 
-                              userDatabase.onValue.listen((event) {
-                                final data = event.snapshot.value;
-                                var users = new Map();
-                                Map<String, dynamic>.from(data as dynamic)
-                                    .forEach(
-                                        (key, value) => users[key] = value);
-                                for (var k in users.keys) {
-                                  if (users[k]['user']['email'] == email) {
+                              final response = await http.post(
+                                url,
+                                body: json.encode({
+                                  'email': email,
+                                  'password': password,
+                                  'returnSecureToken': false,
+                                }),
+                              );
+
+                              final responseData = json.decode(response.body);
+                              if (responseData['error'] != null &&
+                                  responseData['error']['code'] == 400) {
+                                if (responseData['error']['message'] ==
+                                    "EMAIL_NOT_FOUND") {
+                                  setState(() {
+                                    error = 'No user found for that email.';
+                                  });
+                                } else if (responseData['error']['message'] ==
+                                    "INVALID_PASSWORD") {
+                                  setState(() {
+                                    error =
+                                        'Wrong password provided for that user.';
+                                  });
+                                }
+                              } else {
+                                final dburl = Uri.parse(
+                                    "https://healthy-app-5dab0-default-rtdb.asia-southeast1.firebasedatabase.app/users.json");
+                                final db_response = await http.get(dburl);
+                                final users_data =
+                                    json.decode(db_response.body);
+                                for (var k in users_data.keys) {
+                                  if (users_data[k]['user']['email'] == email) {
                                     vm.onUserModelChange(UserModel(
-                                        users[k]['user']['uuid'],
+                                        users_data[k]['user']['uuid'],
                                         email,
-                                        users[k]['user']['name'],
-                                        users[k]['user']['gender'],
-                                        users[k]['user']['noio'],
-                                        users[k]['user']['quequan'],
-                                        users[k]['user']['age']));
+                                        users_data[k]['user']['name'],
+                                        users_data[k]['user']['gender'],
+                                        users_data[k]['user']['noio'],
+                                        users_data[k]['user']['quequan'],
+                                        users_data[k]['user']['age']));
                                     vm.changeIsLogin(true);
                                     EasyLoading.dismiss();
                                     Navigator.pushReplacementNamed(
                                         context, '/home');
                                   }
                                 }
-                              });
-                              EasyLoading.dismiss();
-                            } on FirebaseAuthException catch (e) {
-                              if (e.code == 'user-not-found') {
-                                setState(() {
-                                  error = 'No user found for that email.';
-                                });
-                              } else if (e.code == 'wrong-password') {
-                                setState(() {
-                                  error =
-                                      'Wrong password provided for that user.';
-                                });
                               }
+                              EasyLoading.dismiss();
                             }
                           }
                         },
